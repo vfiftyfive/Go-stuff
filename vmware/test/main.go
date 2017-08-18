@@ -7,7 +7,7 @@ import (
 	"github.com/vfiftyfive/vmware/utils"
 	"github.com/vmware/govmomi"
 	//"github.com/vmware/govmomi/object"
-	"github.com/vmware/govmomi/view"
+	//"github.com/vmware/govmomi/view"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/soap"
 	"log"
@@ -38,22 +38,42 @@ func main() {
 	}
 	//logout when before returning
 	defer c.Logout(ctx)
-	//Define new VM container view and destroy view when returning
-	m := view.NewManager(c.Client)
-	v, err := m.CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"VirtualMachine"}, true)
+
+	// Test to list orphaned VMs with additional info
+	vmList, err := utils.GetClusterOrphanedVMs(clusterName, c, ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer v.Destroy(ctx)
-	var vms []mo.VirtualMachine
-	err = v.Retrieve(ctx, []string{"VirtualMachine"}, nil, &vms)
-	if err != nil {
-		log.Fatal(err)
+	for _, v := range vmList {
+		f, err := v.Folder.ObjectName(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+		h, err := v.Host.ObjectName(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("%v, %v, %v, %t\n", v.Name, f, h, v.IsOrphaned)
 	}
 
-	if err := utils.BlockingRegisterVM("ACI", path, hostName, c, ctx); err != nil {
-		fmt.Println(err)
-	}
+	//Test object View Container
+	//Define new VM container view and destroy view when returning
+	// m := view.NewManager(c.Client)
+	// v, err := m.CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"VirtualMachine"}, true)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// defer v.Destroy(ctx)
+	// var vms []mo.VirtualMachine
+	// err = v.Retrieve(ctx, []string{"VirtualMachine"}, nil, &vms)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	//Test VM Register
+	//if err := utils.BlockingRegisterVM("ACI", path, hostName, c, ctx); err != nil {
+	// 	fmt.Println(err)
+	// }
 
 	//Test folders and VM register
 	// var rootFolder = object.NewRootFolder(c.Client)
