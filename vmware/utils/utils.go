@@ -11,10 +11,6 @@ import (
 	"reflect"
 )
 
-type VMRef interface {
-	isVM() bool
-}
-
 type VM struct {
 	Name       string
 	Folder     object.Folder
