@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"errors"
-	//"fmt"
+	//"errors"
+	"fmt"
 	"github.com/vfiftyfive/vmware/utils"
 	"github.com/vmware/govmomi"
-	"github.com/vmware/govmomi/object"
+	//"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/view"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/soap"
@@ -51,49 +51,53 @@ func main() {
 		log.Fatal(err)
 	}
 
-	//Test folders and VM register
-	var rootFolder = object.NewRootFolder(c.Client)
-	datacenterList, err := rootFolder.Children(ctx)
-	if datacenter, ok := datacenterList[0].(*object.Datacenter); ok {
-		dcFolder, err := datacenter.Folders(ctx)
-		if err != nil {
-			log.Fatal(err)
-		}
-		i, err := utils.GetObjectFromName(hostName, []string{"HostSystem"}, c, ctx, hostMos)
-		if hostMo, ok := i.(mo.HostSystem); ok {
-			hostFolderChildren, err := dcFolder.HostFolder.Children(ctx)
-			if err != nil {
-				log.Fatal(err)
-			}
-			var resources *object.ResourcePool
-			found := false
-			for _, c := range hostFolderChildren {
-				if cl, ok := c.(*object.ClusterComputeResource); ok {
-					clName, err := cl.ObjectName(ctx)
-					if err != nil {
-						log.Fatal(err)
-					}
-					if clName == clusterName {
-						found = true
-						resources, err = cl.ResourcePool(ctx)
-						if err != nil {
-							log.Fatal(err)
-						}
-						break
-					}
-				}
-			}
-			if found == false {
-				log.Fatal(errors.New("no cluster found"))
-			}
-			pool := object.NewResourcePool(c.Client, resources.Reference())
-			task, err := dcFolder.VmFolder.RegisterVM(ctx, path, "", false, pool, object.NewHostSystem(c.Client, hostMo.Reference()))
-			if err != nil {
-				log.Fatal(err)
-			}
-			if err := task.Wait(ctx); err != nil {
-				log.Fatal(err)
-			}
-		}
+	if err := utils.BlockingRegisterVM("ACI", path, hostName, c, ctx); err != nil {
+		fmt.Println(err)
 	}
+
+	//Test folders and VM register
+	// var rootFolder = object.NewRootFolder(c.Client)
+	// datacenterList, err := rootFolder.Children(ctx)
+	// if datacenter, ok := datacenterList[0].(*object.Datacenter); ok {
+	// 	dcFolder, err := datacenter.Folders(ctx)
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// 	i, err := utils.GetObjectFromName(hostName, []string{"HostSystem"}, c, ctx, hostMos)
+	// 	if hostMo, ok := i.(mo.HostSystem); ok {
+	// 		hostFolderChildren, err := dcFolder.HostFolder.Children(ctx)
+	// 		if err != nil {
+	// 			log.Fatal(err)
+	// 		}
+	// 		var resources *object.ResourcePool
+	// 		found := false
+	// 		for _, c := range hostFolderChildren {
+	// 			if cl, ok := c.(*object.ClusterComputeResource); ok {
+	// 				clName, err := cl.ObjectName(ctx)
+	// 				if err != nil {
+	// 					log.Fatal(err)
+	// 				}
+	// 				if clName == clusterName {
+	// 					found = true
+	// 					resources, err = cl.ResourcePool(ctx)
+	// 					if err != nil {
+	// 						log.Fatal(err)
+	// 					}
+	// 					break
+	// 				}
+	// 			}
+	// 		}
+	// 		if found == false {
+	// 			log.Fatal(errors.New("no cluster found"))
+	// 		}
+	// 		pool := object.NewResourcePool(c.Client, resources.Reference())
+	// 		task, err := dcFolder.VmFolder.RegisterVM(ctx, path, "", false, pool, object.NewHostSystem(c.Client, hostMo.Reference()))
+	// 		if err != nil {
+	// 			log.Fatal(err)
+	// 		}
+	// 		if err := task.Wait(ctx); err != nil {
+	// 			log.Fatal(err)
+	// 		}
+	// 	}
+	// }
 }
