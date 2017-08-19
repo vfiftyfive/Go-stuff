@@ -8,16 +8,19 @@ import (
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/view"
 	"github.com/vmware/govmomi/vim25/mo"
-	"reflect"
+	//"reflect"
 )
 
 type VM struct {
+	Object     object.VirtualMachine
 	Name       string
 	Folder     object.Folder
 	Host       object.HostSystem
+	Path       string
 	IsOrphaned bool
 }
 
+// GetObjectFromName
 func GetObjectFromName(name string, vimType []string, c *govmomi.Client, ctx context.Context, ati interface{}) (ato interface{}, err error) {
 
 	m := view.NewManager(c.Client)
@@ -101,49 +104,35 @@ func GetObjectFromName(name string, vimType []string, c *govmomi.Client, ctx con
 	return ato, fmt.Errorf("No object found for %s", name)
 }
 
-func BlockingRegisterVM(folder string, path string, host string, c *govmomi.Client, ctx context.Context) error {
-
-	var folders []mo.Folder
-	i, err := GetObjectFromName(folder, []string{"Folder"}, c, ctx, folders)
-	if err != nil {
-		return err
-	}
-	vmFolder, ok := i.(mo.Folder)
-	if !ok {
-		return errors.New("Can't convert interface to Virtual Machine Folder")
-	}
-	objVmFolder := object.NewFolder(c.Client, vmFolder.Reference())
+// BlockingRegisterVM
+func BlockingRegisterVM(folder object.Folder, path string, host object.HostSystem, c *govmomi.Client, ctx context.Context) error {
 
 	//find the root ResourcePool of the host's parent cluster
 	//First need to check that host is in a cluster.
 	//If not, return error
-	var hosts []mo.HostSystem
-	i, err = GetObjectFromName(host, []string{"HostSystem"}, c, ctx, hosts)
+	var mh mo.HostSystem
+	err := host.Properties(ctx, host.Reference(), []string{"parent"}, &mh)
 	if err != nil {
-		return errors.New("Host not found!")
+		return err
 	}
-	hostMo, ok := i.(mo.HostSystem)
-	if !ok {
-		return errors.New("Can't convert interface to Host System")
-	}
-	parentType := reflect.ValueOf(hostMo.Parent.Type)
-	if parentType.String() == "ClusterComputeResource" {
-		objCluster := object.NewClusterComputeResource(c.Client, *hostMo.Parent)
+	if mh.Parent.Type == "ClusterComputeResource" {
+		objCluster := object.NewClusterComputeResource(c.Client, *mh.Parent)
 		pool, err := objCluster.ResourcePool(ctx)
 		if err != nil {
 			return err
 		}
-		objHost := object.NewHostSystem(c.Client, hostMo.Reference())
-		task, err := objVmFolder.RegisterVM(ctx, path, "", false, pool, objHost)
+		task, err := folder.RegisterVM(ctx, path, "", false, pool, &host)
 		if err := task.Wait(ctx); err != nil {
 			return err
 		}
 	} else {
-		return fmt.Errorf("Host Parent is not a Cluster Compute Resource, it is %s", parentType.String())
+		return fmt.Errorf("Host Parent is not a Cluster Compute Resource, it is %s", mh.Parent.Type)
 	}
 	return nil
+
 }
 
+// GetClusterOrphanedVMs
 func GetClusterOrphanedVMs(clusterName string, c *govmomi.Client, ctx context.Context) (vmList []VM, err error) {
 
 	var clusters []mo.ClusterComputeResource
@@ -192,6 +181,7 @@ func GetClusterOrphanedVMs(clusterName string, c *govmomi.Client, ctx context.Co
 		if vmResourcePoolName == resourcePoolName && vm.Summary.Runtime.ConnectionState == "orphaned" {
 			vmFolder := object.NewFolder(c.Client, *vm.Parent)
 			e := VM{}
+			e.Object = *vmObj
 			e.Name = vm.Name
 			e.Folder = *vmFolder
 			hostPtr, err = vmObj.HostSystem(ctx)
@@ -199,6 +189,7 @@ func GetClusterOrphanedVMs(clusterName string, c *govmomi.Client, ctx context.Co
 				return
 			}
 			e.Host = *hostPtr
+			e.Path = vm.Config.Files.VmPathName
 			e.IsOrphaned = true
 			vmList = append(vmList, e)
 		}

@@ -44,18 +44,34 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	done := make(chan bool)
 	for _, v := range vmList {
-		f, err := v.Folder.ObjectName(ctx)
-		if err != nil {
-			log.Fatal(err)
-		}
-		h, err := v.Host.ObjectName(ctx)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Printf("%v, %v, %v, %t\n", v.Name, f, h, v.IsOrphaned)
+		go func(vmVal utils.VM) {
+			f, err := vmVal.Folder.ObjectName(ctx)
+			if err != nil {
+				log.Fatal(err)
+			}
+			h, err := vmVal.Host.ObjectName(ctx)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("%v, %v, %v, %v, %t\n", vmVal.Object, vmVal.Name, f, h, vmVal.IsOrphaned)
+
+			//Remove VM from inventory and register it properly under initial host
+			if vmVal.IsOrphaned {
+				if err := vmVal.Object.Unregister(ctx); err == nil {
+					if err := utils.BlockingRegisterVM(vmVal.Folder, vmVal.Path, vmVal.Host, c, ctx); err != nil {
+						fmt.Errorf("Can't register VM %s: %s", vmVal.Name, err)
+					}
+				}
+			}
+			done <- true
+		}(v)
 	}
 
+	for _ = range vmList {
+		<-done
+	}
 	//Test object View Container
 	//Define new VM container view and destroy view when returning
 	// m := view.NewManager(c.Client)
