@@ -11,6 +11,7 @@ import (
 	//"reflect"
 )
 
+//VM struct
 type VM struct {
 	Object     object.VirtualMachine
 	Name       string
@@ -20,7 +21,7 @@ type VM struct {
 	IsOrphaned bool
 }
 
-// GetObjectFromName
+//GetObjectFromName returns interface from Name
 func GetObjectFromName(name string, vimType []string, c *govmomi.Client, ctx context.Context, ati interface{}) (ato interface{}, err error) {
 
 	m := view.NewManager(c.Client)
@@ -104,7 +105,7 @@ func GetObjectFromName(name string, vimType []string, c *govmomi.Client, ctx con
 	return ato, fmt.Errorf("No object found for %s", name)
 }
 
-// BlockingRegisterVM
+// BlockingRegisterVM registers VM with blocking function
 func BlockingRegisterVM(folder object.Folder, path string, host object.HostSystem, c *govmomi.Client, ctx context.Context) error {
 
 	//find the root ResourcePool of the host's parent cluster
@@ -132,7 +133,7 @@ func BlockingRegisterVM(folder object.Folder, path string, host object.HostSyste
 
 }
 
-// GetClusterOrphanedVMs
+// GetClusterOrphanedVMs returns list of orphaned VMs
 func GetClusterOrphanedVMs(clusterName string, c *govmomi.Client, ctx context.Context) (vmList []VM, err error) {
 
 	var clusters []mo.ClusterComputeResource

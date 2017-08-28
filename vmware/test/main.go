@@ -61,7 +61,7 @@ func main() {
 			if vmVal.IsOrphaned {
 				if err := vmVal.Object.Unregister(ctx); err == nil {
 					if err := utils.BlockingRegisterVM(vmVal.Folder, vmVal.Path, vmVal.Host, c, ctx); err != nil {
-						fmt.Errorf("Can't register VM %s: %s", vmVal.Name, err)
+						fmt.Printf("Can't register VM %s: %s", vmVal.Name, err)
 					}
 				}
 			}
