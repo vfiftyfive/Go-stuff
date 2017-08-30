@@ -30,7 +30,7 @@ type AaaLogin struct {
 	Cookie   string   `xml:"outCookie,attr,omitempty"`
 }
 
-//AaaLogout is the structure representation of the xsd object
+//AaaLogout is the structure representation for the xsd object
 type AaaLogout struct {
 	XMLName xml.Name `xml:"aaaLogout"`
 	Cookie  string   `xml:"inCookie,attr"`
@@ -56,6 +56,7 @@ func ParseURL(s string) (string, error) {
 	// Default the path to /nuova
 	u.Path = "/nuova"
 	us := u.String()
+
 	return us, err
 
 }
@@ -143,6 +144,7 @@ func post(ctx context.Context, c *Client, xmlStruct interface{}) ([]byte, error)
 	if err != nil {
 		return nil, err
 	}
+
 	return rbody, nil
 }
 
