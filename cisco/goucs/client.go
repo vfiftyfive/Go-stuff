@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -135,6 +136,7 @@ func post(ctx context.Context, c *Client, xmlStruct interface{}) ([]byte, error)
 	}
 	req.Header.Set(`Content-Type`, `application/x-www-form-urlencoded`)
 	req = req.WithContext(ctx)
+	xmlPrint(c.u, xmlByte)
 	resp, err := c.Do(req)
 	defer resp.Body.Close()
 	rbody, err := ioutil.ReadAll(resp.Body)
@@ -142,4 +144,11 @@ func post(ctx context.Context, c *Client, xmlStruct interface{}) ([]byte, error)
 		return nil, err
 	}
 	return rbody, nil
+}
+
+func xmlPrint(s string, b []byte) {
+
+	fmt.Printf("Posting to URL: %s\n", s)
+	os.Stdout.Write(b)
+	fmt.Printf("\n")
 }
