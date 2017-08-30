@@ -125,7 +125,7 @@ func (c *Client) Logout(ctx context.Context) error {
 
 func post(ctx context.Context, c *Client, xmlStruct interface{}) ([]byte, error) {
 
-	xmlByte, err := xml.Marshal(&xmlStruct)
+	xmlByte, err := xml.MarshalIndent(&xmlStruct, " ", " ")
 	if err != nil {
 		return nil, err
 	}
@@ -141,6 +141,5 @@ func post(ctx context.Context, c *Client, xmlStruct interface{}) ([]byte, error)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("%s\n", rbody)
 	return rbody, nil
 }
