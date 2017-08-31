@@ -11,6 +11,8 @@ import (
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/vfiftyfive/cisco/goucs/mo"
 )
 
 //Client abstracts connection information
@@ -34,6 +36,55 @@ type AaaLogin struct {
 type AaaLogout struct {
 	XMLName xml.Name `xml:"aaaLogout"`
 	Cookie  string   `xml:"inCookie,attr"`
+}
+
+//Login provides user login to UCS
+func (c *Client) Login(ctx context.Context) error {
+
+	resp, err := post(ctx, c, c.a)
+	if err != nil {
+		return err
+	}
+	err = xml.Unmarshal(resp, &c.a)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//Logout logs user out from UCS
+func (c *Client) Logout(ctx context.Context) error {
+
+	a := AaaLogout{
+		Cookie: c.a.Cookie,
+	}
+	_, err := post(ctx, c, a)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//ConfigConfMo is the method to configure a single object
+func (c *Client) ConfigConfMo(ctx context.Context, Dn string, m mo.ManagedObject) ([]byte, error) {
+
+	cm := mo.ConfigConfMo{
+		Dn:             Dn,
+		Cookie:         c.a.Cookie,
+		InHierarchical: "false",
+		InConfig:       mo.Inconfig{Mos: []mo.ManagedObject{m}},
+	}
+	resp, err := post(ctx, c, cm)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("HTTP Response:")
+	err = xmlPrint(resp)
+	if err != nil {
+		return resp, err
+	}
+	return resp, nil
 }
 
 var scheme = regexp.MustCompile(`^\w+://`)
@@ -97,34 +148,6 @@ func NewClient(ctx context.Context, u string, insecure bool, user string, pwd st
 	return c, nil
 }
 
-//Login provides user login to UCS
-func (c *Client) Login(ctx context.Context) error {
-
-	res, err := post(ctx, c, c.a)
-	if err != nil {
-		return err
-	}
-	err = xml.Unmarshal(res, &c.a)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-//Logout logs user out from UCS
-func (c *Client) Logout(ctx context.Context) error {
-
-	a := AaaLogout{
-		Cookie: c.a.Cookie,
-	}
-	_, err := post(ctx, c, a)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func post(ctx context.Context, c *Client, xmlStruct interface{}) ([]byte, error) {
 
 	xmlByte, err := xml.MarshalIndent(&xmlStruct, " ", " ")
@@ -137,7 +160,11 @@ func post(ctx context.Context, c *Client, xmlStruct interface{}) ([]byte, error)
 	}
 	req.Header.Set(`Content-Type`, `application/x-www-form-urlencoded`)
 	req = req.WithContext(ctx)
-	xmlPrint(c.u, xmlByte)
+	fmt.Printf("Posting to URL: %s\n", c.u)
+	err = xmlPrint(xmlByte)
+	if err != nil {
+		return nil, err
+	}
 	resp, err := c.Do(req)
 	defer resp.Body.Close()
 	rbody, err := ioutil.ReadAll(resp.Body)
@@ -148,9 +175,12 @@ func post(ctx context.Context, c *Client, xmlStruct interface{}) ([]byte, error)
 	return rbody, nil
 }
 
-func xmlPrint(s string, b []byte) {
+func xmlPrint(b []byte) error {
 
-	fmt.Printf("Posting to URL: %s\n", s)
-	os.Stdout.Write(b)
+	_, err := os.Stdout.Write(b)
+	if err != nil {
+		return err
+	}
 	fmt.Printf("\n")
+	return nil
 }

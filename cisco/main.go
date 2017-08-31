@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/vfiftyfive/cisco/goucs"
+	"github.com/vfiftyfive/cisco/goucs/mo"
 	"log"
 )
 
@@ -22,5 +23,20 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	fv := mo.FabricVlan{
+		Id:      "79",
+		Name:    "api_test",
+		Sharing: "none",
+		Status:  "created",
+	}
+
+	Dn := "fabric/lan/A"
+
+	_, err = cl.ConfigConfMo(ctx, Dn, fv)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	defer cl.Logout(ctx)
 }
