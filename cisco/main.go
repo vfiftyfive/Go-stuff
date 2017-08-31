@@ -2,19 +2,21 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/vfiftyfive/cisco/goucs"
 	"github.com/vfiftyfive/cisco/goucs/mo"
 	"log"
+)
+
+var (
+	url  = "10.51.48.11"
+	user = "admin"
+	pwd  = "C1sco123"
 )
 
 func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	url := "10.51.48.11"
-	user := "admin"
-	pwd := "C1sco123"
 
 	u, err := goucs.ParseURL(url)
 	if err != nil {
@@ -27,19 +29,17 @@ func main() {
 
 	fv := mo.FabricVlan{
 		Id:      "179",
-		Name:    "api_test",
+		Name:    "api_testsdfds",
 		Sharing: "none",
 		Status:  "created",
 	}
 
 	Dn := "fabric/lan/A"
 
-	resp, err := cl.ConfigConfMo(ctx, Dn, fv)
+	_, err = cl.ConfigConfMo(ctx, Dn, fv)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Printf("HTTP Response Body:\n %s\n", string(resp))
 
 	defer cl.Logout(ctx)
 }

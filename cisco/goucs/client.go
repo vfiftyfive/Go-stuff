@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/xml"
 	"fmt"
-	//	"github.com/davecgh/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/vfiftyfive/cisco/goucs/mo"
 	"io/ioutil"
 	"net/http"
@@ -69,7 +69,7 @@ func (c *Client) Logout(ctx context.Context) error {
 }
 
 //ConfigConfMo is the method to configure a single object
-func (c *Client) ConfigConfMo(ctx context.Context, Dn string, m mo.ManagedObject) ([]byte, error) {
+func (c *Client) ConfigConfMo(ctx context.Context, Dn string, m mo.ManagedObject) (mo.ConfigConfMo, error) {
 
 	cm := mo.ConfigConfMo{
 		Dn:             Dn,
@@ -79,17 +79,24 @@ func (c *Client) ConfigConfMo(ctx context.Context, Dn string, m mo.ManagedObject
 	}
 	resp, err := post(ctx, c, cm)
 	if err != nil {
-		return nil, err
+		return cm, err
 	}
-	// err = xml.Unmarshal(resp, &cm)
-	// if debug {
-	// 	fmt.Println("HTTP response Body:")
-	// 	spew.Dump(cm)
-	// }
-	// if err != nil {
-	// 	return resp, err
-	// }
-	return resp, nil
+
+	err = xml.Unmarshal(resp, &cm)
+	if err != nil {
+		return cm, err
+	}
+
+	if debug {
+		fmt.Println("Debug Mode - HTTP response body:")
+		spew.Dump(cm)
+	}
+	if "" != cm.ErrorCode {
+		err := fmt.Errorf(cm.ErrorDescr)
+		return cm, err
+	}
+
+	return cm, nil
 }
 
 var scheme = regexp.MustCompile(`^\w+://`)
