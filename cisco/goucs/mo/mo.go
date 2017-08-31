@@ -8,12 +8,16 @@ type ManagedObject interface {
 
 //ConfigConfMo is the object use by ConfigConfMo()
 type ConfigConfMo struct {
-	XMLName        xml.Name  `xml:"configConfMo"`
-	Dn             string    `xml:"dn,attr"`
-	Cookie         string    `xml:"cookie,attr,omitempty"`
-	InHierarchical string    `xml:"inHierarchical,attr,omitempty"`
-	InConfig       Inconfig  `xml:",omitempty"`
-	OutConfig      Outconfig `xml:",omitemtpy"`
+	XMLName          xml.Name   `xml:"configConfMo"`
+	Dn               string     `xml:"dn,attr"`
+	Cookie           string     `xml:"cookie,attr,omitempty"`
+	InHierarchical   string     `xml:"inHierarchical,attr,omitempty"`
+	Response         string     `xml:"response,attr,omitempty"`
+	InvocationResult string     `xml:"invocationResult,attr,omitempty"`
+	ErrorCode        string     `xml:"errorCode,attr,omitempty"`
+	ErrorDescr       string     `xml:"errorDescr,attr,omitempty"`
+	InConfig         *Inconfig  `xml:"inConfig"`
+	OutConfig        *Outconfig `xml:"outConfig"`
 }
 
 //FabricVlan is the VLAN object
@@ -53,12 +57,10 @@ type FabricVlan struct {
 
 //Outconfig represents the outConfig xml element
 type Outconfig struct {
-	XMLName xml.Name `xml:"outConfig"`
-	Mos     []ManagedObject
+	Mos []ManagedObject
 }
 
 //Inconfig represents the inConfig xml element
 type Inconfig struct {
-	XMLName xml.Name `xml:"inConfig"`
-	Mos     []ManagedObject
+	Mos []ManagedObject
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/vfiftyfive/cisco/goucs"
 	"github.com/vfiftyfive/cisco/goucs/mo"
 	"log"
@@ -25,7 +26,7 @@ func main() {
 	}
 
 	fv := mo.FabricVlan{
-		Id:      "79",
+		Id:      "179",
 		Name:    "api_test",
 		Sharing: "none",
 		Status:  "created",
@@ -33,10 +34,12 @@ func main() {
 
 	Dn := "fabric/lan/A"
 
-	_, err = cl.ConfigConfMo(ctx, Dn, fv)
+	resp, err := cl.ConfigConfMo(ctx, Dn, fv)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Printf("HTTP Response Body:\n %s\n", string(resp))
 
 	defer cl.Logout(ctx)
 }

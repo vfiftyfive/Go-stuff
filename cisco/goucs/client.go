@@ -5,15 +5,17 @@ import (
 	"crypto/tls"
 	"encoding/xml"
 	"fmt"
+	//	"github.com/davecgh/go-spew/spew"
+	"github.com/vfiftyfive/cisco/goucs/mo"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"regexp"
 	"strings"
-
-	"github.com/vfiftyfive/cisco/goucs/mo"
 )
+
+var debug = false
 
 //Client abstracts connection information
 type Client struct {
@@ -73,17 +75,20 @@ func (c *Client) ConfigConfMo(ctx context.Context, Dn string, m mo.ManagedObject
 		Dn:             Dn,
 		Cookie:         c.a.Cookie,
 		InHierarchical: "false",
-		InConfig:       mo.Inconfig{Mos: []mo.ManagedObject{m}},
+		InConfig:       &mo.Inconfig{Mos: []mo.ManagedObject{m}},
 	}
 	resp, err := post(ctx, c, cm)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("HTTP Response:")
-	err = xmlPrint(resp)
-	if err != nil {
-		return resp, err
-	}
+	// err = xml.Unmarshal(resp, &cm)
+	// if debug {
+	// 	fmt.Println("HTTP response Body:")
+	// 	spew.Dump(cm)
+	// }
+	// if err != nil {
+	// 	return resp, err
+	// }
 	return resp, nil
 }
 
