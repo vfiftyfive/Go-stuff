@@ -27,19 +27,44 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fv := mo.FabricVlan{
-		Id:      "179",
-		Name:    "api_testsdfds",
+	//ConfigConfMo Test
+	// fv := mo.FabricVlan{
+	// 	Id:      "179",
+	// 	Name:    "api_testsdfds",
+	// 	Sharing: "none",
+	// 	Status:  "created",
+	// }
+
+	// Dn := "fabric/lan/A"
+
+	// _, err = cl.ConfigConfMo(ctx, Dn, fv)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	//ConfigConfMos Test
+	fv1 := mo.FabricVlan{
+		Id:      "279",
+		Name:    "api_test279",
 		Sharing: "none",
 		Status:  "created",
 	}
-
-	Dn := "fabric/lan/A"
-
-	_, err = cl.ConfigConfMo(ctx, Dn, fv)
-	if err != nil {
-		log.Fatal(err)
+	fv2 := mo.FabricVlan{
+		Id:      "379",
+		Name:    "api_test379",
+		Sharing: "none",
+		Status:  "created",
 	}
+	p1 := mo.Pair{
+		Key: "fabric/lan/A/net-" + fv1.Name,
+		Mo:  fv1,
+	}
+	p2 := mo.Pair{
+		Key: "fabric/lan/A/net-" + fv2.Name,
+		Mo:  fv2,
+	}
+	p := []mo.Pair{p1, p2}
+	_, err = cl.ConfigConfMos(ctx, p)
 
 	defer cl.Logout(ctx)
 }

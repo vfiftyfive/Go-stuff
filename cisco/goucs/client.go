@@ -69,13 +69,13 @@ func (c *Client) Logout(ctx context.Context) error {
 }
 
 //ConfigConfMo is the method to configure a single object
-func (c *Client) ConfigConfMo(ctx context.Context, Dn string, m mo.ManagedObject) (mo.ConfigConfMo, error) {
+func (c *Client) ConfigConfMo(ctx context.Context, dn string, m mo.ManagedObject) (mo.ConfigConfMo, error) {
 
 	cm := mo.ConfigConfMo{
-		Dn:             Dn,
+		Dn:             dn,
 		Cookie:         c.a.Cookie,
 		InHierarchical: "false",
-		InConfig:       &mo.Inconfig{Mos: []mo.ManagedObject{m}},
+		InConfig:       &mo.InConfig{Mo: m},
 	}
 	resp, err := post(ctx, c, cm)
 	if err != nil {
@@ -97,6 +97,39 @@ func (c *Client) ConfigConfMo(ctx context.Context, Dn string, m mo.ManagedObject
 	}
 
 	return cm, nil
+}
+
+//ConfigConfMos is the method to configure multiple objects simultaneously
+func (c *Client) ConfigConfMos(ctx context.Context, pairs []mo.Pair) (mo.ConfigConfMos, error) {
+
+	cms := mo.ConfigConfMos{
+		Cookie:    c.a.Cookie,
+		InConfigs: &mo.InConfigs{},
+	}
+	for _, p := range pairs {
+		cms.InConfigs.Pairs = append(cms.InConfigs.Pairs, p)
+	}
+	resp, err := post(ctx, c, cms)
+	if err != nil {
+		return cms, err
+	}
+
+	err = xml.Unmarshal(resp, &cms)
+	if err != nil {
+		return cms, err
+	}
+
+	if debug {
+		fmt.Println("Debug Mode - HTTP response body:")
+		spew.Dump(cms)
+	}
+	if "" != cms.ErrorCode {
+		err := fmt.Errorf(cms.ErrorDescr)
+		return cms, err
+	}
+
+	return cms, nil
+
 }
 
 var scheme = regexp.MustCompile(`^\w+://`)

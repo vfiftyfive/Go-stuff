@@ -6,7 +6,7 @@ import "encoding/xml"
 type ManagedObject interface {
 }
 
-//ConfigConfMo is the object use by ConfigConfMo()
+//ConfigConfMo is the input struct used by ConfigConfMo()
 type ConfigConfMo struct {
 	XMLName          xml.Name   `xml:"configConfMo"`
 	Dn               string     `xml:"dn,attr"`
@@ -16,11 +16,23 @@ type ConfigConfMo struct {
 	InvocationResult string     `xml:"invocationResult,attr,omitempty"`
 	ErrorCode        string     `xml:"errorCode,attr,omitempty"`
 	ErrorDescr       string     `xml:"errorDescr,attr,omitempty"`
-	InConfig         *Inconfig  `xml:"inConfig"`
-	OutConfig        *Outconfig `xml:"outConfig"`
+	InConfig         *InConfig  `xml:"inConfig"`
+	OutConfig        *OutConfig `xml:"outConfig"`
 }
 
-//FabricVlan is the VLAN object
+//ConfigConfMos is the input struct used by ConfigConfMos()
+type ConfigConfMos struct {
+	XMLName          xml.Name    `xml:"configConfMos"`
+	Cookie           string      `xml:"cookie,attr,omitempty"`
+	Response         string      `xml:"response,attr,omitempty"`
+	InvocationResult string      `xml:"invocationResult,attr,omitempty"`
+	ErrorCode        string      `xml:"errorCode,attr,omitempty"`
+	ErrorDescr       string      `xml:"errorDescr,attr,omitempty"`
+	InConfigs        *InConfigs  `xml:"inConfigs"`
+	OutConfigs       *OutConfigs `xml:"outConfigs"`
+}
+
+//FabricVlan represents the fabricVlan xml element
 type FabricVlan struct {
 	XMLName                  xml.Name `xml:"fabricVlan"`
 	Dn                       string   `xml:"dn,omitempty,attr"`
@@ -56,11 +68,28 @@ type FabricVlan struct {
 }
 
 //Outconfig represents the outConfig xml element
-type Outconfig struct {
-	Mos []ManagedObject
+type OutConfig struct {
+	Mo ManagedObject
 }
 
 //Inconfig represents the inConfig xml element
-type Inconfig struct {
-	Mos []ManagedObject
+type InConfig struct {
+	Mo ManagedObject
+}
+
+//OutConfigs represents the outConfigs xml element
+type OutConfigs struct {
+	Pairs []Pair
+}
+
+//InConfigs represents the InConfigs xml element
+type InConfigs struct {
+	Pairs []Pair
+}
+
+//Pair represents the pair xml element
+type Pair struct {
+	XMLName xml.Name `xml:"pair"`
+	Key     string   `xml:"key,attr"`
+	Mo      ManagedObject
 }
