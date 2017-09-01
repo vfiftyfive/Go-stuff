@@ -42,18 +42,19 @@ func main() {
 	// 	log.Fatal(err)
 	// }
 
-	//ConfigConfMos Test
+	//ConfigConfMos Test - private VLANs
 	fv1 := mo.FabricVlan{
 		Id:      "279",
-		Name:    "api_test279",
-		Sharing: "none",
+		Name:    "test-279",
+		Sharing: "primary",
 		Status:  "created",
 	}
 	fv2 := mo.FabricVlan{
-		Id:      "379",
-		Name:    "api_test379",
-		Sharing: "none",
-		Status:  "created",
+		Id:        "379",
+		Name:      "test-379",
+		Sharing:   "isolated",
+		PubNwName: "test-279",
+		Status:    "created",
 	}
 	p1 := mo.Pair{
 		Key: "fabric/lan/A/net-" + fv1.Name,
@@ -63,8 +64,13 @@ func main() {
 		Key: "fabric/lan/A/net-" + fv2.Name,
 		Mo:  fv2,
 	}
+
 	p := []mo.Pair{p1, p2}
 	_, err = cl.ConfigConfMos(ctx, p)
+
+	if err != nil {
+		log.Fatalf("Error when creating object: %s", err)
+	}
 
 	defer cl.Logout(ctx)
 }

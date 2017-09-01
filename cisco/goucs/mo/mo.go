@@ -59,6 +59,7 @@ type FabricVlan struct {
 	PeerDn                   string   `xml:"peerDn,omitempty,attr"`
 	PolicyOwner              string   `xml:"policyOwner,omitempty,attr"`
 	PubNwDn                  string   `xml:"pubNwDn,omitempty,attr"`
+	PubNwId                  string   `xml:"pubNwId,omitempty,attr"`
 	PubNwName                string   `xml:"pubNwName,omitempty,attr"`
 	Sharing                  string   `xml:"sharing,omitempty,attr"`
 	Status                   string   `xml:"status,omitempty,attr"`
