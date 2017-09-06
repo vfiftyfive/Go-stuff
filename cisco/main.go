@@ -104,11 +104,15 @@ func main() {
 			//Create the corresponding pair
 			//fmt.Println(reflect.TypeOf(m).Elem())
 			if vnic, ok := m.(*mo.VnicEther); ok {
-				vp[j] = mo.Pair{
-					Key: vnic.Dn + "/if-" + v[i].Name,
-					Mo:  v[i],
+				t := 0
+				for t < len(v) {
+					vp[j] = mo.Pair{
+						Key: vnic.Dn + "/if-" + v[i].Name,
+						Mo:  v[t],
+					}
+					t++
+					j++
 				}
-				j++
 			}
 		}
 	}
