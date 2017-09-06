@@ -114,12 +114,12 @@ func (c *Client) ConfigConfMos(ctx context.Context, pairs []mo.Pair) (mo.ConfigC
 	if err != nil {
 		return cms, err
 	}
-
-	mos, err := methods.UnmarshalXML(bytes.NewReader(resp), &cms)
-	cms.OutConfigs = &mos
+	var tm mo.ManagedObject
+	mos, err := methods.UnmarshalXML(bytes.NewReader(resp), &tm)
 	if err != nil {
 		return cms, err
 	}
+	cms.OutConfigs = &mos
 
 	if debug {
 		fmt.Println("Debug Mode - HTTP response body:")
@@ -135,13 +135,13 @@ func (c *Client) ConfigConfMos(ctx context.Context, pairs []mo.Pair) (mo.ConfigC
 }
 
 //ConfigResolveChildren is the method to retrieve multiple objects children information
-func (c *Client) ConfigResolveChildren(ctx context.Context, cid string, inDn string) (mo.ConfigResolveChildren, error) {
+func (c *Client) ConfigResolveChildren(ctx context.Context, cid string, inDn string, inH string) (mo.ConfigResolveChildren, error) {
 
 	crc := mo.ConfigResolveChildren{
 		Cookie:         c.a.Cookie,
 		ClassId:        cid,
 		InDn:           inDn,
-		InHierarchical: "true",
+		InHierarchical: inH,
 	}
 
 	resp, err := post(ctx, c, crc)
