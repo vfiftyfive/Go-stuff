@@ -1,16 +1,17 @@
 package goucs
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/xml"
 	"fmt"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/vfiftyfive/cisco/goucs/methods"
 	"github.com/vfiftyfive/cisco/goucs/mo"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"regexp"
 	"strings"
 )
@@ -75,7 +76,7 @@ func (c *Client) ConfigConfMo(ctx context.Context, dn string, m mo.ManagedObject
 		Dn:             dn,
 		Cookie:         c.a.Cookie,
 		InHierarchical: "false",
-		InConfig:       &mo.InConfig{Mo: m},
+		InConfig:       &m,
 	}
 	resp, err := post(ctx, c, cm)
 	if err != nil {
@@ -114,7 +115,8 @@ func (c *Client) ConfigConfMos(ctx context.Context, pairs []mo.Pair) (mo.ConfigC
 		return cms, err
 	}
 
-	err = xml.Unmarshal(resp, &cms)
+	mos, err := methods.UnmarshalXML(bytes.NewReader(resp), &cms)
+	cms.OutConfigs = &mos
 	if err != nil {
 		return cms, err
 	}
@@ -130,6 +132,39 @@ func (c *Client) ConfigConfMos(ctx context.Context, pairs []mo.Pair) (mo.ConfigC
 
 	return cms, nil
 
+}
+
+//ConfigResolveChildren is the method to retrieve multiple objects children information
+func (c *Client) ConfigResolveChildren(ctx context.Context, cid string, inDn string) (mo.ConfigResolveChildren, error) {
+
+	crc := mo.ConfigResolveChildren{
+		Cookie:         c.a.Cookie,
+		ClassId:        cid,
+		InDn:           inDn,
+		InHierarchical: "true",
+	}
+
+	resp, err := post(ctx, c, crc)
+	if err != nil {
+		return crc, err
+	}
+	var tm mo.ManagedObject
+	mos, err := methods.UnmarshalXML(bytes.NewReader(resp), &tm)
+	if err != nil {
+		return crc, err
+	}
+	crc.OutConfigs = &mos
+
+	if debug {
+		fmt.Println("Debug Mode - HTTP response spew dump:")
+		spew.Dump(crc)
+	}
+	if "" != crc.ErrorCode {
+		err := fmt.Errorf(crc.ErrorDescr)
+		return crc, err
+	}
+
+	return crc, nil
 }
 
 var scheme = regexp.MustCompile(`^\w+://`)
@@ -206,26 +241,23 @@ func post(ctx context.Context, c *Client, xmlStruct interface{}) ([]byte, error)
 	req.Header.Set(`Content-Type`, `application/x-www-form-urlencoded`)
 	req = req.WithContext(ctx)
 	fmt.Printf("Posting to URL: %s\n", c.u)
-	err = xmlPrint(xmlByte)
+	err = methods.XMLPrint(xmlByte)
 	if err != nil {
 		return nil, err
 	}
 	resp, err := c.Do(req)
 	defer resp.Body.Close()
 	rbody, err := ioutil.ReadAll(resp.Body)
+
+	//Send response to Stdout if debug is true
+	if debug {
+		fmt.Println("Debug Mode - raw HTTP response:")
+		methods.XMLPrint(rbody)
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
 	return rbody, nil
-}
-
-func xmlPrint(b []byte) error {
-
-	_, err := os.Stdout.Write(b)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("\n")
-	return nil
 }

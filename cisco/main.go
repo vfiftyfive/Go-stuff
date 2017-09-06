@@ -3,7 +3,8 @@ package main
 import (
 	"context"
 	"github.com/vfiftyfive/cisco/goucs"
-	"github.com/vfiftyfive/cisco/goucs/mo"
+	//	"github.com/vfiftyfive/cisco/goucs/mo"
+	"fmt"
 	"log"
 )
 
@@ -43,33 +44,51 @@ func main() {
 	// }
 
 	//ConfigConfMos Test - private VLANs
-	fv1 := mo.FabricVlan{
-		Id:      "279",
-		Name:    "test-279",
-		Sharing: "primary",
-		Status:  "created",
-	}
-	fv2 := mo.FabricVlan{
-		Id:        "379",
-		Name:      "test-379",
-		Sharing:   "isolated",
-		PubNwName: "test-279",
-		Status:    "created",
-	}
-	p1 := mo.Pair{
-		Key: "fabric/lan/A/net-" + fv1.Name,
-		Mo:  fv1,
-	}
-	p2 := mo.Pair{
-		Key: "fabric/lan/A/net-" + fv2.Name,
-		Mo:  fv2,
-	}
+	// fv1 := mo.FabricVlan{
+	// 	Id:      "279",
+	// 	Name:    "test-279",
+	// 	Sharing: "primary",
+	// 	Status:  "created,modified",
+	// }
+	// fv2 := mo.FabricVlan{
+	// 	Id:        "379",
+	// 	Name:      "test-379",
+	// 	Sharing:   "isolated",
+	// 	PubNwName: "test-279",
+	// 	Status:    "created,modified",
+	// }
 
-	p := []mo.Pair{p1, p2}
-	_, err = cl.ConfigConfMos(ctx, p)
+	// p1 := mo.Pair{
+	// 	Key: "fabric/lan/A/net-" + fv1.Name,
+	// 	Mo:  fv1,
+	// }
+	// p2 := mo.Pair{
+	// 	Key: "fabric/lan/A/net-" + fv2.Name,
+	// 	Mo:  fv2,
+	// }
+	// p3 := mo.Pair{
+	// 	Key: "fabric/lan/B/net-" + fv1.Name,
+	// 	Mo:  fv1,
+	// }
+	// p4 := mo.Pair{
+	// 	Key: "fabric/lan/B/net-" + fv2.Name,
+	// 	Mo:  fv2,
+	// }
 
+	// p := []mo.Pair{p1, p2, p3, p4}
+	// _, err = cl.ConfigConfMos(ctx, p)
+
+	// if err != nil {
+	// 	log.Fatalf("Error when creating object: %s", err)
+	// }
+
+	//ConfigResolveChildren Test
+	crc, err := cl.ConfigResolveChildren(ctx, "vnicEther", "org-root/ls-sp-01")
 	if err != nil {
-		log.Fatalf("Error when creating object: %s", err)
+		log.Fatal(err)
+	}
+	for _, m := range *crc.OutConfigs {
+		fmt.Println(m)
 	}
 
 	defer cl.Logout(ctx)
