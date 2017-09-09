@@ -17,9 +17,7 @@ import (
 )
 
 const aaaLogin = "/api/mo/aaaLogin.xml"
-const aaaLogout = "/apit/mo/aaaLogout.xml"
-
-var debug = true
+const aaaLogout = "/api/mo/aaaLogout.xml"
 
 //Client abstracts connection information
 type Client struct {
@@ -28,6 +26,7 @@ type Client struct {
 	t *http.Transport
 	a AaaUser
 	i bool
+	d bool
 }
 
 //AaaUser is the structure representation of aaaUser
@@ -73,8 +72,13 @@ func (c *Client) Logout(ctx context.Context) error {
 
 }
 
+//SetDebug sets debug to true or false
+func (c *Client) SetDebug(b bool) {
+	c.d = true
+}
+
 //NewClient genereates a new Client with context
-func NewClient(ctx context.Context, u string, insecure bool, user string, pwd string) (*Client, error) {
+func NewClient(ctx context.Context, u string, insecure bool, user string, pwd string, debug bool) (*Client, error) {
 
 	c := &Client{
 		u: u,
@@ -83,6 +87,7 @@ func NewClient(ctx context.Context, u string, insecure bool, user string, pwd st
 			Pwd:  pwd,
 		},
 		i: insecure,
+		d: debug,
 	}
 	if t, ok := http.DefaultTransport.(*http.Transport); ok {
 
@@ -104,7 +109,7 @@ func NewClient(ctx context.Context, u string, insecure bool, user string, pwd st
 	l, err := c.Login(ctx)
 
 	//print aaaLogin mo is debug is true
-	if debug {
+	if c.d {
 		spew.Dump(l)
 	}
 	if err != nil {
@@ -135,7 +140,7 @@ func post(ctx context.Context, c *Client, xmlStruct interface{}) ([]byte, error)
 	rbody, err := ioutil.ReadAll(resp.Body)
 
 	//Send response to Stdout if debug is true
-	if debug {
+	if c.d {
 		fmt.Println("Debug Mode - raw HTTP response:")
 		methods.XMLPrint(rbody)
 	}
@@ -165,5 +170,9 @@ func ParseURL(s string) (string, error) {
 	}
 
 	return u.String(), err
+
+}
+
+func truncateURL(string) string {
 
 }
