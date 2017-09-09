@@ -22,18 +22,19 @@ const aaaLogout = "/api/mo/aaaLogout.xml"
 //Client abstracts connection information
 type Client struct {
 	http.Client
-	u string
-	t *http.Transport
-	a AaaUser
-	i bool
-	d bool
+	u  string
+	t  *http.Transport
+	a  AaaUser
+	tk string
+	i  bool
+	d  bool
 }
 
 //AaaUser is the structure representation of aaaUser
 type AaaUser struct {
 	XMLName xml.Name `xml:"aaaUser"`
 	Name    string   `xml:"name,attr"`
-	Pwd     string   `xml:"pwd,attr"`
+	Pwd     string   `xml:"pwd,attr,omitempty"`
 }
 
 //Login provides user login to ACI
@@ -53,6 +54,7 @@ func (c *Client) Login(ctx context.Context) (mo.AaaLogin, error) {
 	}
 
 	if al, ok := ls[0].(*mo.AaaLogin); ok {
+		c.tk = al.Token
 		return *al, nil
 	}
 	err = fmt.Errorf("Type insertion for aaaLogin failed")
@@ -62,8 +64,14 @@ func (c *Client) Login(ctx context.Context) (mo.AaaLogin, error) {
 //Logout logs user out from ACI
 func (c *Client) Logout(ctx context.Context) error {
 
-	c.u = c.u + aaaLogout
-	_, err := post(ctx, c, c.a)
+	u, err := url.Parse(c.u)
+	if err != nil {
+		return err
+	}
+	u.Path = aaaLogout
+	c.u = u.String()
+	c.a.Pwd = ""
+	_, err = post(ctx, c, c.a)
 	if err != nil {
 		return err
 	}
@@ -129,12 +137,23 @@ func post(ctx context.Context, c *Client, xmlStruct interface{}) ([]byte, error)
 	if err != nil {
 		return nil, err
 	}
+
+	//Add context to the request
 	req = req.WithContext(ctx)
+
+	//Add Authentication token as cookie
+	ck := http.Cookie{
+		Name:  "APIC-cookie",
+		Value: c.tk,
+	}
+	req.AddCookie(&ck)
+
 	fmt.Printf("Posting to URL: %s\n", c.u)
 	err = methods.XMLPrint(xmlByte)
 	if err != nil {
 		return nil, err
 	}
+
 	resp, err := c.Do(req)
 	defer resp.Body.Close()
 	rbody, err := ioutil.ReadAll(resp.Body)
@@ -170,9 +189,5 @@ func ParseURL(s string) (string, error) {
 	}
 
 	return u.String(), err
-
-}
-
-func truncateURL(string) string {
 
 }
