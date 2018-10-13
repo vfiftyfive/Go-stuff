@@ -8,6 +8,7 @@ import (
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/view"
 	"github.com/vmware/govmomi/vim25/mo"
+	"github.com/vmware/govmomi/vim25/types"
 	//"reflect"
 )
 
@@ -179,7 +180,7 @@ func GetVMWithStatus(clusterName string, status string, c *govmomi.Client, ctx c
 			return
 		}
 		var hostPtr *object.HostSystem
-		if vmResourcePoolName == resourcePoolName && vm.Summary.Runtime.ConnectionState == status {
+		if vmResourcePoolName == resourcePoolName && vm.Summary.Runtime.ConnectionState == types.VirtualMachineConnectionState (status) {
 			vmFolder := object.NewFolder(c.Client, *vm.Parent)
 			e := VM{}
 			e.Object = *vmObj
