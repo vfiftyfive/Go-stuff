@@ -134,7 +134,7 @@ func BlockingRegisterVM(folder object.Folder, path string, host object.HostSyste
 }
 
 // GetClusterOrphanedVMs returns list of orphaned VMs
-func GetClusterOrphanedVMs(clusterName string, c *govmomi.Client, ctx context.Context) (vmList []VM, err error) {
+func GetVMWithStatus(clusterName string, c *govmomi.Client, ctx context.Context) (vmList []VM, err error) {
 
 	var clusters []mo.ClusterComputeResource
 	i, err := GetObjectFromName(clusterName, []string{"ClusterComputeResource"}, c, ctx, clusters)
@@ -179,7 +179,7 @@ func GetClusterOrphanedVMs(clusterName string, c *govmomi.Client, ctx context.Co
 			return
 		}
 		var hostPtr *object.HostSystem
-		if vmResourcePoolName == resourcePoolName && vm.Summary.Runtime.ConnectionState == "orphaned" {
+		if vmResourcePoolName == resourcePoolName && vm.Summary.Runtime.ConnectionState == "disconnected" {
 			vmFolder := object.NewFolder(c.Client, *vm.Parent)
 			e := VM{}
 			e.Object = *vmObj
