@@ -133,7 +133,7 @@ func BlockingRegisterVM(folder object.Folder, path string, host object.HostSyste
 
 }
 
-// GetClusterOrphanedVMs returns list of orphaned VMs
+// GetVMWithStatus returns list of orphaned VMs
 func GetVMWithStatus(clusterName string, c *govmomi.Client, ctx context.Context) (vmList []VM, err error) {
 
 	var clusters []mo.ClusterComputeResource
