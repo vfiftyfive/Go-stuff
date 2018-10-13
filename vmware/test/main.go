@@ -46,7 +46,7 @@ func main() {
 	hostMo := hostMoPre.(mo.HostSystem)
 
 	// Test to list orphaned VMs with additional info
-	vmList, err := utils.GetVMWithStatus(clusterName, c, ctx)
+	vmList, err := utils.GetVMWithStatus(clusterName, "disconnected", c, ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
