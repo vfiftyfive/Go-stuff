@@ -198,3 +198,16 @@ func GetVMWithStatus(clusterName string, status string, c *govmomi.Client, ctx c
 	}
 	return
 }
+
+//RemoveHost removes a host from Inventory
+func RemoveHost(ctx context.Context, host object.HostSystem) error {
+	task, err := host.Destroy(ctx)
+	if err != nil {
+		return(err)
+	}
+	err = task.Wait(ctx)
+	if err != nil {
+		return (err)
+	}
+	return nil
+}
