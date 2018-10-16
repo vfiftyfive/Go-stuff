@@ -74,19 +74,6 @@ func main() {
 	for _ = range vmList {
 		<-done
 	}
-	//Test object View Container
-	//Define new VM container view and destroy view when returning
-	// m := view.NewManager(c.Client)
-	// v, err := m.CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"VirtualMachine"}, true)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer v.Destroy(ctx)
-	// var vms []mo.VirtualMachine
-	// err = v.Retrieve(ctx, []string{"VirtualMachine"}, nil, &vms)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
 
 	//Test VM Register
 	//if err := utils.BlockingRegisterVM("ACI", path, hostName, c, ctx); err != nil {
