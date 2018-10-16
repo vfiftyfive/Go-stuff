@@ -19,7 +19,6 @@ type VM struct {
 	Folder     object.Folder
 	Host       object.HostSystem
 	Path       string
-	IsOrphaned bool
 }
 
 //GetObjectFromName returns interface from Name
@@ -192,22 +191,9 @@ func GetVMWithStatus(clusterName string, status string, c *govmomi.Client, ctx c
 			}
 			e.Host = *hostPtr
 			e.Path = vm.Config.Files.VmPathName
-			e.IsOrphaned = true
 			vmList = append(vmList, e)
 		}
 	}
 	return
 }
 
-//RemoveHost removes a host from Inventory
-func RemoveHost(ctx context.Context, host object.HostSystem) error {
-	task, err := host.Destroy(ctx)
-	if err != nil {
-		return(err)
-	}
-	err = task.Wait(ctx)
-	if err != nil {
-		return (err)
-	}
-	return nil
-}

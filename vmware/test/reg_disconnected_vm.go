@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/vfiftyfive/vmware/utils"
 	"github.com/vmware/govmomi"
-	//"github.com/vmware/govmomi/object"
+	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/view"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/soap"
@@ -17,7 +17,7 @@ import (
 const vcURL = "https://administrator@vsphere.local:C!5co123@nvermand-vc-01.uktme.cisco.com/sdk"
 const cluster = "pod-02"
 const host = "nvermand-esxi-05.uktme.cisco.com"
-const hostToRemove = "nvermand-esxi-03.ukmte.cisco.com"
+const hostToRemove = "nvermand-esxi-03.uktme.cisco.com"
 
 func main() {
 
@@ -38,13 +38,17 @@ func main() {
 	//logout when before returning
 	defer c.Logout(ctx)
 
+	//Find Host mo for given ESXi name
+	dstHostInterface, err := utils.GetObjectFromName(host, []string{"HostSystem"}, c, ctx, []mo.HostSystem{})
+	dstHost, ok := dstHostInterface.(mo.HostSystem)
+	if !ok {
+		log.Fatalf("%v is not of type HostSystem", dstHostInterface )
+	}
 	//Find disconnected VM
 	DisconnectedVMList, err := utils.GetVMWithStatus(cluster, "disconnected", c, ctx)
 	if (err != nil) {
 		log.Fatal(err)
 	}
-	fmt.Println(DisconnectedVMList)
-
 	//Find and remove disconnected hosts
 	var hs []mo.HostSystem
 	m := view.NewManager(c.Client)
@@ -56,19 +60,26 @@ func main() {
 	}
 	for _, h := range hs {
 		if (h.Runtime.ConnectionState == "notResponding") {
-			// := object.NewHostSystem(c.Client, h.Reference())
-			// task, err := hostObject.Destroy(ctx)
-			// if (err != nil) {
-			// 	log.Fatal(err)
-			// }
-			// err = task.Wait(ctx)
-			// if (err != nil) {
-			// 	log.Fatal(err)
-			//}
+			hostObject := object.NewHostSystem(c.Client, h.Reference())
+			task, err := hostObject.Destroy(ctx)
+			if (err != nil) {
+				log.Fatal(err)
+			}
+			err = task.Wait(ctx)
+			if (err != nil) {
+				log.Fatal(err)
+			}
 		}
 	}
-
-
+	dstHostObject := object.NewHostSystem(c.Client, dstHost.Reference())
+	//Register disconnected VMs back
+	for _, v := range DisconnectedVMList {
+		err := utils.BlockingRegisterVM(v.Folder, v.Path, *dstHostObject, c, ctx)
+		if err != nil {
+			log.Fatal(err)
+		fmt.Println(v.Name)
+		}	
+	}
 
 	//done := make(chan bool)
 	//	go func(vm utils.VM) {
