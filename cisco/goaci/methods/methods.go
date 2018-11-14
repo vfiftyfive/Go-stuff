@@ -23,7 +23,6 @@ func XMLPrint(b []byte) error {
 //UnmarshalXML wraps xml.DecodeElement() to find the corresponding type
 //in the registry map
 func UnmarshalXML(r io.Reader, i interface{}) ([]mo.ManagedObject, error) {
-
 	i = nil
 	var mos []mo.ManagedObject
 	d := xml.NewDecoder(r)

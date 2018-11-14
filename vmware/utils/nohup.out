@@ -1,0 +1,21 @@
+channel 3: open failed: administratively prohibited: open failed
+channel 9: open failed: administratively prohibited: open failed
+channel 10: open failed: administratively prohibited: open failed
+channel 3: open failed: connect failed: Connection timed out
+channel 9: open failed: connect failed: Connection timed out
+channel 10: open failed: connect failed: Connection timed out
+channel 12: open failed: connect failed: Connection timed out
+channel 11: open failed: connect failed: Connection timed out
+channel 13: open failed: connect failed: Connection timed out
+channel 2: open failed: connect failed: Connection timed out
+channel 6: open failed: connect failed: Connection timed out
+channel 7: open failed: connect failed: Connection timed out
+channel 17: open failed: connect failed: Connection timed out
+channel 3: open failed: connect failed: Connection timed out
+channel 4: open failed: connect failed: Connection timed out
+channel 2: open failed: connect failed: No route to host
+channel 6: open failed: connect failed: Connection timed out
+channel 2: open failed: connect failed: Connection timed out
+channel 4: open failed: connect failed: Connection timed out
+channel 6: open failed: connect failed: Connection timed out
+packet_write_wait: Connection to 10.52.249.210 port 22: Broken pipe

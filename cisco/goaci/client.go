@@ -39,7 +39,6 @@ type AaaUser struct {
 
 //Login provides user login to ACI
 func (c *Client) Login(ctx context.Context) (mo.AaaLogin, error) {
-
 	c.u = c.u + aaaLogin
 	var l mo.AaaLogin
 	var i interface{}
@@ -47,12 +46,10 @@ func (c *Client) Login(ctx context.Context) (mo.AaaLogin, error) {
 	if err != nil {
 		return l, err
 	}
-
 	ls, err := methods.UnmarshalXML(bytes.NewReader(resp), i)
 	if err != nil {
 		return l, err
 	}
-
 	if al, ok := ls[0].(*mo.AaaLogin); ok {
 		c.tk = al.Token
 		return *al, nil
@@ -63,7 +60,6 @@ func (c *Client) Login(ctx context.Context) (mo.AaaLogin, error) {
 
 //Logout logs user out from ACI
 func (c *Client) Logout(ctx context.Context) error {
-
 	u, err := url.Parse(c.u)
 	if err != nil {
 		return err
@@ -75,9 +71,7 @@ func (c *Client) Logout(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
-
 }
 
 //SetDebug sets debug to true or false
@@ -87,10 +81,9 @@ func (c *Client) SetDebug(b bool) {
 
 //NewClient genereates a new Client with context
 func NewClient(ctx context.Context, u string, insecure bool, user string, pwd string, debug bool) (*Client, error) {
-
-	c := &Client{
+	c := &Client {
 		u: u,
-		a: AaaUser{
+		a: AaaUser {
 			Name: user,
 			Pwd:  pwd,
 		},
@@ -99,7 +92,7 @@ func NewClient(ctx context.Context, u string, insecure bool, user string, pwd st
 	}
 	if t, ok := http.DefaultTransport.(*http.Transport); ok {
 
-		c.t = &http.Transport{
+		c.t = &http.Transport {
 			Proxy:                 t.Proxy,
 			DialContext:           t.DialContext,
 			MaxIdleConns:          t.MaxIdleConns,
@@ -115,7 +108,6 @@ func NewClient(ctx context.Context, u string, insecure bool, user string, pwd st
 	c.t.TLSClientConfig = &tls.Config{InsecureSkipVerify: c.i}
 	c.Client.Transport = c.t
 	l, err := c.Login(ctx)
-
 	//print aaaLogin mo is debug is true
 	if c.d {
 		spew.Dump(l)
@@ -123,12 +115,10 @@ func NewClient(ctx context.Context, u string, insecure bool, user string, pwd st
 	if err != nil {
 		return nil, err
 	}
-
 	return c, nil
 }
 
 func post(ctx context.Context, c *Client, xmlStruct interface{}) ([]byte, error) {
-
 	xmlByte, err := xml.MarshalIndent(&xmlStruct, " ", " ")
 	if err != nil {
 		return nil, err
@@ -137,57 +127,45 @@ func post(ctx context.Context, c *Client, xmlStruct interface{}) ([]byte, error)
 	if err != nil {
 		return nil, err
 	}
-
 	//Add context to the request
 	req = req.WithContext(ctx)
-
 	//Add Authentication token as cookie
 	ck := http.Cookie{
 		Name:  "APIC-cookie",
 		Value: c.tk,
 	}
 	req.AddCookie(&ck)
-
 	fmt.Printf("Posting to URL: %s\n", c.u)
 	err = methods.XMLPrint(xmlByte)
 	if err != nil {
 		return nil, err
 	}
-
 	resp, err := c.Do(req)
 	defer resp.Body.Close()
 	rbody, err := ioutil.ReadAll(resp.Body)
-
 	//Send response to Stdout if debug is true
 	if c.d {
 		fmt.Println("Debug Mode - raw HTTP response:")
 		methods.XMLPrint(rbody)
 	}
-
 	if err != nil {
 		return nil, err
 	}
-
 	return rbody, nil
 }
-
 var scheme = regexp.MustCompile(`^\w+://`)
 
 //ParseURL parses URL information to include uri and default settings
 func ParseURL(s string) (string, error) {
-
 	if s != "" {
 		// Default to https
 		if !scheme.MatchString(s) {
 			s = "https://" + s
 		}
 	}
-
 	u, err := url.Parse(s)
 	if err != nil {
 		return "", err
 	}
-
 	return u.String(), err
-
 }
