@@ -169,7 +169,7 @@ func init() {
 	Reg["fvRsBd"] = reflect.TypeOf((*FvRsBd)(nil)).Elem()
 }
 
-//fvRsProv is ACI provisioned Contract
+//FvRsProv is ACI provisioned Contract
 type FvRsProv struct {
 	XMLName 		xml.Name 	`xml:"fvRsProv"`
 	TnVzBrCPName	string 		`xml:"tnVzBrCPName,attr"`
